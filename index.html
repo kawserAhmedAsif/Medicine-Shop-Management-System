@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediShop — Pharmacy Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+    <div class="auth-shell">
+        <header class="top-nav">
+            <a href="index.html" class="brand-mark">
+                <span class="brand-badge"><i class="fas fa-plus"></i></span>
+                <span class="brand-text">
+                    <strong>MediShop</strong>
+                    <small>Pharmacy Inventory &amp; Billing</small>
+                </span>
+            </a>
+            <nav class="nav-links" aria-label="Primary navigation">
+                <a href="#login" class="nav-pill active" data-info="login">Sign In</a>
+                <a href="#fefo" class="nav-link" data-info="fefo">FEFO Rules</a>
+                <a href="#roles" class="nav-link" data-info="roles">User Roles</a>
+                <a href="#about" class="nav-link" data-info="about">Project Info</a>
+            </nav>
+            <button type="button" class="mobile-nav-btn" id="mobileNavBtn" aria-label="Toggle menu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </header>
+
+        <main class="auth-main">
+            <section class="login-panel">
+                <div class="login-card">
+                    <div class="login-heading">
+                        <h1>USER <span>LOGIN</span></h1>
+                        <p>Sign in with your assigned role to access stock, batches, and billing.</p>
+                    </div>
+
+                    <div id="infoBanner" class="info-banner" role="status" aria-live="polite" hidden></div>
+
+                    <form id="loginForm" novalidate>
+                        <div class="field-group">
+                            <label for="username" class="sr-only">Username or Full Name</label>
+                            <div class="input-wrap">
+                                <i class="fas fa-user"></i>
+                                <input type="text" id="username" name="username" placeholder="Username or Name (e.g. asif, fahim, esha)" required autocomplete="username">
+                            </div>
+                        </div>
+
+                        <div class="field-group">
+                            <label for="password" class="sr-only">Password</label>
+                            <div class="input-wrap">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" id="password" name="password" placeholder="Password" required autocomplete="current-password">
+                                <button type="button" class="toggle-password" id="togglePassword" aria-label="Show or hide password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="role-row">
+                            <label for="roleSelect">Account Role</label>
+                            <select id="roleSelect" name="role">
+                                <option value="Administrator">Administrator</option>
+                                <option value="Manager">Manager / Shop Owner</option>
+                                <option value="Sales Staff">Sales Staff</option>
+                            </select>
+                        </div>
+
+                        <div class="meta-row">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="rememberMe" checked>
+                                <span>Remember me</span>
+                            </label>
+                            <a href="#reset" id="forgotLink" class="forgot-link">Forgot Password?</a>
+                        </div>
+
+                        <button type="submit" class="btn-signin">Log in</button>
+                    </form>
+
+                    <p class="helper-note">
+                        Medicine Shop Management System (MSMS) — Tracks stock batch by batch, blocks expired batches automatically, and sells earliest-expiry stock first (FEFO).
+                    </p>
+                </div>
+            </section>
+
+            <aside class="visual-panel" aria-hidden="true">
+                <div class="illustration-stage">
+                    <svg class="medical-scene" viewBox="0 0 520 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <ellipse cx="285" cy="315" rx="170" ry="62" fill="#0f766e" fill-opacity="0.14"/>
+                        <path d="M92 268C118 242 152 246 166 274C178 298 152 325 120 322C92 319 72 288 92 268Z" fill="#0d9488" fill-opacity="0.22"/>
+                        <path d="M114 282C132 268 154 272 162 288" stroke="#0f766e" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M412 225C438 202 472 208 482 236C491 262 464 288 432 282C404 277 390 245 412 225Z" fill="#0d9488" fill-opacity="0.24"/>
+                        <path d="M428 240C446 226 466 232 474 248" stroke="#0f766e" stroke-width="2.5" stroke-linecap="round"/>
+
+                        <ellipse cx="292" cy="196" rx="92" ry="108" transform="rotate(-14 292 196)" fill="#cbd5e1"/>
+                        <ellipse cx="276" cy="192" rx="92" ry="108" transform="rotate(-14 276 192)" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
+                        <path d="M263 136H287V176H327V200H287V240H263V200H223V176H263V136Z" fill="#dc2626"/>
+                        <path d="M263 136H287V176H279V240H263V200H223V176H263V136Z" fill="#b91c1c" fill-opacity="0.35"/>
+
+                        <ellipse cx="182" cy="286" rx="30" ry="15" fill="#fbcfe8" stroke="#f472b6" stroke-width="1.5"/>
+                        <path d="M152 286V296C152 304 165 310 182 310C199 310 212 304 212 296V286" fill="#f9a8d4" stroke="#f472b6" stroke-width="1.5"/>
+                        <ellipse cx="256" cy="316" rx="26" ry="12" fill="#fce7f3" stroke="#f472b6" stroke-width="1.5"/>
+                        <path d="M230 316V324C230 330 242 335 256 335C270 335 282 330 282 324V316" fill="#fbcfe8" stroke="#f472b6" stroke-width="1.5"/>
+
+                        <path d="M356 226C356 218 366 213 382 213C398 213 408 218 408 226V312C408 321 397 327 382 327C367 327 356 321 356 312V226Z" fill="#3b82f6"/>
+                        <path d="M356 248C370 254 394 254 408 248V296C394 302 370 302 356 296V248Z" fill="#eff6ff" fill-opacity="0.9"/>
+                        <line x1="368" y1="264" x2="396" y2="264" stroke="#0f766e" stroke-width="3" stroke-linecap="round"/>
+                        <line x1="368" y1="276" x2="390" y2="276" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
+                        <ellipse cx="382" cy="212" rx="28" ry="10" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+                        <path d="M377 209H387M382 205V213" stroke="#475569" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+            </aside>
+        </main>
+    </div>
+    <script src="js/login.js"></script>
+</body>
+</html>

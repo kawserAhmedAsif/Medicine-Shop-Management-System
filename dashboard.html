@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediShop — Medicine Shop Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="#" class="brand-logo" data-target="view-inventory">
+                    <span class="logo-mark"><i class="fas fa-plus"></i></span>
+                    <span class="logo-title">MediShop</span>
+                </a>
+                <button type="button" class="collapse-btn" id="collapseSidebar" title="Compact sidebar" aria-label="Compact sidebar">
+                    <i class="far fa-window-restore"></i>
+                </button>
+                <button type="button" class="close-sidebar" id="closeSidebar" aria-label="Close menu">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li><a href="#" data-target="view-dashboard"><i class="fas fa-th-large"></i> <span>Overview</span></a></li>
+                <li class="active"><a href="#" data-target="view-inventory"><i class="fas fa-box-open"></i> <span>Products</span></a></li>
+                <li><a href="#" data-target="view-orders"><i class="fas fa-clipboard-list"></i> <span>Orders</span></a></li>
+                <li><a href="#" data-target="view-sales"><i class="fas fa-receipt"></i> <span>Sales (FEFO)</span></a></li>
+                <li><a href="#" data-target="view-purchases"><i class="fas fa-truck-loading"></i> <span>Purchases</span></a></li>
+                <li><a href="#" data-target="view-customers"><i class="fas fa-user-friends"></i> <span>Customers</span></a></li>
+                <li><a href="#" data-target="view-reports"><i class="fas fa-chart-pie"></i> <span>Reports</span></a></li>
+            </ul>
+
+            <ul class="sidebar-secondary">
+                <li><a href="#" data-target="view-help"><i class="far fa-question-circle"></i> <span>Help &amp; Support</span></a></li>
+                <li><a href="#" data-target="view-settings"><i class="fas fa-cog"></i> <span>Settings</span></a></li>
+            </ul>
+
+            <div class="sidebar-promo">
+                <div class="promo-icon"><i class="fas fa-shield-alt"></i></div>
+                <h4>Batch &amp; FEFO Check</h4>
+                <p>Expired batches are blocked automatically. Valid stock sells earliest expiry first.</p>
+                <button type="button" class="btn-promo" id="promoRuleBtn">Open POS Billing</button>
+            </div>
+
+            <div class="sidebar-footer">
+                <button type="button" id="logoutBtn" class="btn-logout">
+                    <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button type="button" class="menu-toggle" id="menuToggle" aria-label="Open menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="greeting-block">
+                        <h1 id="topbarPageTitle">Product List</h1>
+                        <p id="topbarSubtitle">Let's check your pharmacy today</p>
+                    </div>
+                </div>
+
+                <div class="topbar-center">
+                    <div class="top-search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="globalSearchInput" placeholder="Search medicine, batch, order...">
+                    </div>
+                </div>
+
+                <div class="topbar-right">
+                    <button type="button" class="icon-circle-btn" id="alertBellBtn" title="Low-Stock &amp; Expiry Alerts" aria-label="Alerts">
+                        <i class="far fa-bell"></i>
+                        <span class="alert-dot" id="alertCountBadge">3</span>
+                    </button>
+                    <div class="profile-chip" id="profileChip" aria-label="Logged-in user">
+                        <span class="avatar-initials" id="userInitials">KA</span>
+                        <div class="profile-meta">
+                            <strong id="profileName">Kawser Ahmed Asif</strong>
+                            <span id="profileRole">Administrator</span>
+                        </div>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+            </header>
+
+            <div class="alert-popover" id="alertPopover" hidden>
+                <div class="alert-popover-head">
+                    <strong>Stock &amp; Expiry Alerts</strong>
+                    <button type="button" id="closeAlertsBtn" aria-label="Close alerts">&times;</button>
+                </div>
+                <ul>
+                    <li><span class="dot-amber"></span> <strong>Amoxicillin 250mg</strong> (Batch #B-204): Low stock (45 units).</li>
+                    <li><span class="dot-red"></span> <strong>Ibuprofen 200mg</strong> (Batch #B-112): Expired — blocked from sale.</li>
+                    <li><span class="dot-amber"></span> <strong>Metformin XR 500mg</strong> (Batch #B-502): Low stock (24 units).</li>
+                </ul>
+            </div>
+
+            <div class="dashboard-body">
+                <div id="view-inventory" class="content-view active">
+                    <section class="summary-strip" aria-label="Inventory summary">
+                        <div class="summary-card">
+                            <div class="summary-left">
+                                <span class="summary-label">Total Products</span>
+                                <strong class="summary-value" id="statTotalProducts">20,579</strong>
+                            </div>
+                            <div class="summary-icon neutral"><i class="fas fa-cubes"></i></div>
+                            <button type="button" class="card-more" data-filter-status="all" title="Show all products"><i class="fas fa-ellipsis-v"></i></button>
+                        </div>
+
+                        <div class="summary-card">
+                            <div class="summary-left">
+                                <span class="summary-label">Low Stock Items</span>
+                                <strong class="summary-value" id="statLowStock">120</strong>
+                            </div>
+                            <div class="summary-icon amber"><i class="fas fa-exclamation-triangle"></i></div>
+                            <button type="button" class="card-more" data-filter-status="Low stock" title="Filter low stock"><i class="fas fa-ellipsis-v"></i></button>
+                        </div>
+
+                        <div class="summary-card">
+                            <div class="summary-left">
+                                <span class="summary-label">Out of Stock</span>
+                                <strong class="summary-value" id="statOutStock">89</strong>
+                            </div>
+                            <div class="summary-icon coral"><i class="fas fa-times-circle"></i></div>
+                            <button type="button" class="card-more" data-filter-status="Out of stock" title="Filter out of stock"><i class="fas fa-ellipsis-v"></i></button>
+                        </div>
+                    </section>
+
+                    <section class="category-grid" id="categoryGrid" aria-label="Medicine categories">
+                        <article class="cat-card featured" data-category="Antibiotics">
+                            <div class="cat-top">
+                                <span class="cat-title">Antibiotics</span>
+                                <i class="fas fa-ellipsis-v cat-dots"></i>
+                            </div>
+                            <div class="cat-bottom">
+                                <div>
+                                    <div class="cat-count">120</div>
+                                    <div class="cat-trend up"><span class="trend-pill">+2%</span> Since last week</div>
+                                </div>
+                                <div class="cat-badge-icon"><i class="fas fa-capsules"></i></div>
+                            </div>
+                        </article>
+
+                        <article class="cat-card" data-category="Pain Relievers">
+                            <div class="cat-top">
+                                <span class="cat-title">Pain Relievers</span>
+                                <i class="fas fa-ellipsis-v cat-dots"></i>
+                            </div>
+                            <div class="cat-bottom">
+                                <div>
+                                    <div class="cat-count">95</div>
+                                    <div class="cat-trend flat"><span class="trend-pill neutral">+0.6%</span> Since last week</div>
+                                </div>
+                                <div class="cat-badge-icon"><i class="fas fa-tablets"></i></div>
+                            </div>
+                        </article>
+
+                        <article class="cat-card" data-category="Vitamins & Supplements">
+                            <div class="cat-top">
+                                <span class="cat-title">Vitamins &amp; Supplements</span>
+                                <i class="fas fa-ellipsis-v cat-dots"></i>
+                            </div>
+                            <div class="cat-bottom">
+                                <div>
+                                    <div class="cat-count">75</div>
+                                    <div class="cat-trend up"><span class="trend-pill">+2%</span> Since last week</div>
+                                </div>
+                                <div class="cat-badge-icon"><i class="fas fa-prescription-bottle-alt"></i></div>
+                            </div>
+                        </article>
+
+                        <article class="cat-card" data-category="Antiviral Drugs">
+                            <div class="cat-top">
+                                <span class="cat-title">Antiviral Drugs</span>
+                                <i class="fas fa-ellipsis-v cat-dots"></i>
+                            </div>
+                            <div class="cat-bottom">
+                                <div>
+                                    <div class="cat-count">50</div>
+                                    <div class="cat-trend down"><span class="trend-pill down-pill">-0.2%</span> Since last week</div>
+                                </div>
+                                <div class="cat-badge-icon"><i class="fas fa-shield-virus"></i></div>
+                            </div>
+                        </article>
+
+                        <article class="cat-card" data-category="Diabetes Care">
+                            <div class="cat-top">
+                                <span class="cat-title">Diabetes Care</span>
+                                <i class="fas fa-ellipsis-v cat-dots"></i>
+                            </div>
+                            <div class="cat-bottom">
+                                <div>
+                                    <div class="cat-count">65</div>
+                                    <div class="cat-trend down"><span class="trend-pill down-pill">-0.1%</span> Since last week</div>
+                                </div>
+                                <div class="cat-badge-icon"><i class="fas fa-syringe"></i></div>
+                            </div>
+                        </article>
+
+                        <article class="cat-card" data-category="Cardiovascular">
+                            <div class="cat-top">
+                                <span class="cat-title">Cardiovascular</span>
+                                <i class="fas fa-ellipsis-v cat-dots"></i>
+                            </div>
+                            <div class="cat-bottom">
+                                <div>
+                                    <div class="cat-count">80</div>
+                                    <div class="cat-trend up"><span class="trend-pill">+8%</span> Since last week</div>
+                                </div>
+                                <div class="cat-badge-icon"><i class="fas fa-heartbeat"></i></div>
+                            </div>
+                        </article>
+
+                        <article class="cat-card" data-category="Allergy Medication">
+                            <div class="cat-top">
+                                <span class="cat-title">Allergy Medication</span>
+                                <i class="fas fa-ellipsis-v cat-dots"></i>
+                            </div>
+                            <div class="cat-bottom">
+                                <div>
+                                    <div class="cat-count">40</div>
+                                    <div class="cat-trend up"><span class="trend-pill">+5%</span> Since last week</div>
+                                </div>
+                                <div class="cat-badge-icon"><i class="fas fa-allergies"></i></div>
+                            </div>
+                        </article>
+
+                        <article class="cat-card" data-category="Respiratory Medicines">
+                            <div class="cat-top">
+                                <span class="cat-title">Respiratory Medicines</span>
+                                <i class="fas fa-ellipsis-v cat-dots"></i>
+                            </div>
+                            <div class="cat-bottom">
+                                <div>
+                                    <div class="cat-count">55</div>
+                                    <div class="cat-trend up"><span class="trend-pill">+2.6%</span> Since last week</div>
+                                </div>
+                                <div class="cat-badge-icon"><i class="fas fa-lungs"></i></div>
+                            </div>
+                        </article>
+                    </section>
+
+                    <section class="panel-card">
+                        <div class="toolbar-row">
+                            <div class="table-search">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="productSearchInput" placeholder="Search...">
+                            </div>
+
+                            <div class="toolbar-actions">
+                                <button type="button" class="btn-lime" id="openAddProductModal">
+                                    <i class="fas fa-plus-circle"></i> Add New Product
+                                </button>
+                                <button type="button" class="btn-outline" id="productFilterBtn">
+                                    <i class="fas fa-sliders-h"></i> Filters
+                                </button>
+                                <button type="button" class="btn-outline" id="exportProductsBtn">
+                                    <i class="fas fa-upload"></i> Export
+                                </button>
+                                <select class="select-period" id="productPeriodSelect" aria-label="Filter time range">
+                                    <option value="month" selected>This Month</option>
+                                    <option value="week">This Week</option>
+                                    <option value="all">All Batches</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="filter-drawer" id="productFilterDrawer" hidden>
+                            <label>
+                                Category:
+                                <select id="filterCategorySelect">
+                                    <option value="all">All Categories</option>
+                                    <option value="Antibiotics">Antibiotics</option>
+                                    <option value="Pain Relievers">Pain Relievers</option>
+                                    <option value="Vitamins & Supplements">Vitamins &amp; Supplements</option>
+                                    <option value="Antiviral Drugs">Antiviral Drugs</option>
+                                    <option value="Diabetes Care">Diabetes Care</option>
+                                    <option value="Cardiovascular">Cardiovascular</option>
+                                    <option value="Allergy Medication">Allergy Medication</option>
+                                    <option value="Respiratory Medicines">Respiratory Medicines</option>
+                                </select>
+                            </label>
+                            <label>
+                                Stock Status:
+                                <select id="filterStockSelect">
+                                    <option value="all">All Statuses</option>
+                                    <option value="In stock">In stock</option>
+                                    <option value="Low stock">Low stock</option>
+                                    <option value="Out of stock">Out of stock</option>
+                                </select>
+                            </label>
+                            <button type="button" class="btn-subtle" id="resetProductFilters">Reset</button>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table class="data-table" id="productsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Product ID</th>
+                                        <th>Product Name</th>
+                                        <th>Quantity</th>
+                                        <th>Price</th>
+                                        <th>Expiry Date</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productsTableBody"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="table-footer">
+                            <div class="page-size-box">
+                                <span>Showing</span>
+                                <select id="productPageSize" aria-label="Rows per page">
+                                    <option value="4" selected>4</option>
+                                    <option value="8">8</option>
+                                    <option value="20">20</option>
+                                </select>
+                                <span id="productTotalCountLabel">out of 100</span>
+                            </div>
+                            <div class="pagination-controls" id="productPagination"></div>
+                        </div>
+                    </section>
+                </div>
+
+                <div id="view-orders" class="content-view">
+                    <section class="orders-kpi-grid" aria-label="Order summary">
+                        <div class="order-kpi-card featured">
+                            <div class="order-kpi-top">
+                                <span>Total Orders</span>
+                                <i class="fas fa-ellipsis-v"></i>
+                            </div>
+                            <div class="order-kpi-sub">Since last week</div>
+                            <div class="order-kpi-main">
+                                <strong id="kpiTotalOrders">1,256</strong>
+                                <span class="kpi-pill positive"><i class="fas fa-chart-line"></i> +2.7%</span>
+                            </div>
+                            <div class="order-kpi-foot">Revenue Generated: <strong>$15,500</strong></div>
+                        </div>
+
+                        <div class="order-kpi-card">
+                            <div class="order-kpi-top">
+                                <span>Completed Orders</span>
+                                <i class="fas fa-ellipsis-v"></i>
+                            </div>
+                            <div class="order-kpi-sub">Since last week</div>
+                            <div class="order-kpi-main">
+                                <strong id="kpiCompletedOrders">875</strong>
+                                <span class="kpi-pill positive"><i class="fas fa-chart-line"></i> +2.7%</span>
+                            </div>
+                            <div class="order-kpi-foot">Revenue Generated: <strong>$8,500</strong></div>
+                        </div>
+
+                        <div class="order-kpi-card">
+                            <div class="order-kpi-top">
+                                <span>Pending Orders</span>
+                                <i class="fas fa-ellipsis-v"></i>
+                            </div>
+                            <div class="order-kpi-sub">Since last week</div>
+                            <div class="order-kpi-main">
+                                <strong id="kpiPendingOrders">235</strong>
+                                <span class="kpi-pill positive"><i class="fas fa-chart-line"></i> +3.7%</span>
+                            </div>
+                            <div class="order-kpi-foot">Approx Revenue: <strong>$2,500</strong></div>
+                        </div>
+
+                        <div class="order-kpi-card">
+                            <div class="order-kpi-top">
+                                <span>Cancelled Orders</span>
+                                <i class="fas fa-ellipsis-v"></i>
+                            </div>
+                            <div class="order-kpi-sub">Since last week</div>
+                            <div class="order-kpi-main">
+                                <strong id="kpiCancelledOrders">5</strong>
+                                <span class="kpi-pill negative"><i class="fas fa-chart-line"></i> -0.2%</span>
+                            </div>
+                            <div class="order-kpi-foot">Lost Revenue: <strong>$1,000</strong></div>
+                        </div>
+                    </section>
+
+                    <section class="panel-card">
+                        <div class="toolbar-row">
+                            <div class="table-search">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="orderSearchInput" placeholder="Search...">
+                            </div>
+
+                            <div class="toolbar-actions">
+                                <button type="button" class="btn-lime" id="openNewOrderBtn">
+                                    <i class="fas fa-plus-circle"></i> Add New Order
+                                </button>
+                                <button type="button" class="btn-outline" id="orderFilterBtn">
+                                    <i class="fas fa-sliders-h"></i> Filters
+                                </button>
+                                <button type="button" class="btn-outline" id="exportOrdersBtn">
+                                    <i class="fas fa-upload"></i> Export
+                                </button>
+                                <select class="select-period" id="orderPeriodSelect" aria-label="Filter order period">
+                                    <option value="month" selected>This Month</option>
+                                    <option value="week">This Week</option>
+                                    <option value="today">Today</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="filter-drawer" id="orderFilterDrawer" hidden>
+                            <label>
+                                Payment Status:
+                                <select id="filterPaymentSelect">
+                                    <option value="all">All Payments</option>
+                                    <option value="Paid">Paid</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Failed">Failed</option>
+                                </select>
+                            </label>
+                            <label>
+                                Order Status:
+                                <select id="filterOrderStatusSelect">
+                                    <option value="all">All Order Statuses</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="In progress">In progress</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                            </label>
+                            <button type="button" class="btn-subtle" id="resetOrderFilters">Reset</button>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table class="data-table" id="ordersTable">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer Name</th>
+                                        <th>Order Date</th>
+                                        <th>Products Ordered</th>
+                                        <th>Total Amount</th>
+                                        <th>Payment Status</th>
+                                        <th>Order Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ordersTableBody"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="table-footer">
+                            <div class="page-size-box">
+                                <span>Showing</span>
+                                <select id="orderPageSize" aria-label="Orders per page">
+                                    <option value="9" selected>9</option>
+                                    <option value="5">5</option>
+                                    <option value="20">20</option>
+                                </select>
+                                <span id="orderTotalCountLabel">out of 100</span>
+                            </div>
+                            <div class="pagination-controls" id="orderPagination"></div>
+                        </div>
+                    </section>
+                </div>
+
+                <div id="view-dashboard" class="content-view">
+                    <div class="overview-grid">
+                        <div class="mini-kpi">
+                            <span>Monthly Sales Revenue</span>
+                            <strong>$15,500</strong>
+                            <small class="pos">+11.4% vs last month</small>
+                        </div>
+                        <div class="mini-kpi">
+                            <span>Completed Bills</span>
+                            <strong>1,256</strong>
+                            <small class="pos">+2.7% since last week</small>
+                        </div>
+                        <div class="mini-kpi">
+                            <span>Low Stock &amp; Expiry Alerts</span>
+                            <strong>12 Items</strong>
+                            <small class="warn">Check batch reorder list</small>
+                        </div>
+                        <div class="mini-kpi">
+                            <span>Registered Customers</span>
+                            <strong>1,240</strong>
+                            <small class="pos">Active walk-in &amp; regular patients</small>
+                        </div>
+                    </div>
+
+                    <div class="panel-card mb-24">
+                        <div class="section-head-inline">
+                            <h2>Weekly Sales &amp; Revenue Trend</h2>
+                            <span class="badge-soft">7-Day Summary</span>
+                        </div>
+                        <div class="chart-box">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="panel-card">
+                        <div class="section-head-inline">
+                            <h2>Recent Orders</h2>
+                            <button type="button" class="btn-outline" id="jumpToOrdersBtn">Open Full Order List</button>
+                        </div>
+                        <div class="table-wrap">
+                            <table class="data-table" id="recentOrdersTable">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Medicine</th>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>#ORD001</td>
+                                        <td>John Smith</td>
+                                        <td>Paracetamol (2), Ibuprofen (1)</td>
+                                        <td>25-11-2026</td>
+                                        <td>$25.50</td>
+                                        <td><span class="pill-status completed">Completed</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>#ORD002</td>
+                                        <td>Emily Davis</td>
+                                        <td>Amoxicillin (3), Cetirizine (2)</td>
+                                        <td>24-11-2026</td>
+                                        <td>$42.00</td>
+                                        <td><span class="pill-status progress">In progress</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-sales" class="content-view">
+                    <div class="pos-layout">
+                        <div class="panel-card">
+                            <div class="section-head-inline">
+                                <h2>Create Sale (FEFO Batch Allocation)</h2>
+                                <span class="badge-soft">Expired Batches Blocked</span>
+                            </div>
+                            <div class="table-search full-w mb-18">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="posSearchInput" placeholder="Search valid non-expired medicines...">
+                            </div>
+                            <div class="pos-cards-grid" id="posProductGrid"></div>
+                        </div>
+
+                        <div class="panel-card pos-cart-panel">
+                            <h2>Customer Invoice</h2>
+                            <div class="form-field mt-12">
+                                <label for="posCustomerInput">Customer Name</label>
+                                <input type="text" id="posCustomerInput" placeholder="Walk-in Customer" value="Walk-in Customer">
+                            </div>
+                            <div id="posCartItems" class="cart-list">
+                                <p class="empty-cart-msg">Select a medicine on the left to add to the invoice.</p>
+                            </div>
+                            <div class="pos-summary-box">
+                                <div class="summary-line">
+                                    <span>Subtotal</span>
+                                    <strong id="posSubtotal">$0.00</strong>
+                                </div>
+                                <div class="summary-line">
+                                    <span>Discount (%)</span>
+                                    <input type="number" id="posDiscountInput" min="0" max="50" value="0" class="mini-num-input">
+                                </div>
+                                <div class="summary-line total-line">
+                                    <span>Total Payable</span>
+                                    <strong id="posTotal">$0.00</strong>
+                                </div>
+                                <button type="button" class="btn-lime full-w mt-14" id="completeSaleBtn">
+                                    <i class="fas fa-check-circle"></i> Complete Sale &amp; Print Invoice
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-purchases" class="content-view">
+                    <div class="panel-card">
+                        <div class="section-head-inline">
+                            <h2>Supplier Purchases &amp; Batch Stock Entry</h2>
+                            <span class="badge-soft">Increases Batch Stock</span>
+                        </div>
+                        <form id="purchaseEntryForm" class="settings-grid mt-12">
+                            <div class="form-field">
+                                <label for="purSupplier">Supplier Name</label>
+                                <select id="purSupplier">
+                                    <option value="Square Pharmaceuticals Distributor">Square Pharmaceuticals Distributor</option>
+                                    <option value="Beximco Pharma Depot">Beximco Pharma Depot</option>
+                                    <option value="Incepta Healthcare Supply">Incepta Healthcare Supply</option>
+                                    <option value="Renata Medical Agency">Renata Medical Agency</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label for="purMedicineSelect">Select Medicine</label>
+                                <select id="purMedicineSelect"></select>
+                            </div>
+                            <div class="form-field">
+                                <label for="purBatchNo">New Batch Number</label>
+                                <input type="text" id="purBatchNo" value="B-912" required>
+                            </div>
+                            <div class="form-field">
+                                <label for="purQuantity">Received Quantity (Units)</label>
+                                <input type="number" id="purQuantity" min="1" value="50" required>
+                            </div>
+                            <div class="form-actions-full">
+                                <button type="submit" class="btn-lime"><i class="fas fa-plus"></i> Record Purchase &amp; Update Stock</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="view-customers" class="content-view">
+                    <div class="panel-card">
+                        <div class="section-head-inline">
+                            <h2>Customer Directory</h2>
+                            <span class="badge-soft">Regular Buyers</span>
+                        </div>
+                        <div class="table-wrap">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Customer Name</th>
+                                        <th>Phone</th>
+                                        <th>Total Purchases</th>
+                                        <th>Last Visit</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="customersTableBody">
+                                    <tr>
+                                        <td>John Smith</td>
+                                        <td>+880 1711-204910</td>
+                                        <td>$340.50</td>
+                                        <td>25-11-2026</td>
+                                        <td><span class="pill-status paid">Active</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Emily Davis</td>
+                                        <td>+880 1819-550192</td>
+                                        <td>$184.00</td>
+                                        <td>24-11-2026</td>
+                                        <td><span class="pill-status paid">Active</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Michael Johnson</td>
+                                        <td>+880 1912-883411</td>
+                                        <td>$92.50</td>
+                                        <td>23-11-2026</td>
+                                        <td><span class="pill-status paid">Active</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-reports" class="content-view">
+                    <div class="reports-grid">
+                        <div class="panel-card">
+                            <h3>Daily &amp; Monthly Sales Report</h3>
+                            <p class="card-desc">Download all completed and pending sales orders with total amounts as CSV.</p>
+                            <button type="button" class="btn-lime mt-14" id="reportSalesCsvBtn">
+                                <i class="fas fa-file-csv"></i> Download Sales CSV
+                            </button>
+                        </div>
+                        <div class="panel-card">
+                            <h3>Low-Stock &amp; Batch Expiry Report</h3>
+                            <p class="card-desc">Download batch quantities, unit prices, expiry dates, and stock status as CSV.</p>
+                            <button type="button" class="btn-outline mt-14" id="reportInventoryCsvBtn">
+                                <i class="fas fa-file-export"></i> Download Stock CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-help" class="content-view">
+                    <div class="panel-card">
+                        <h2>Business Rules &amp; System Guide</h2>
+                        <ul class="help-list">
+                            <li><strong>Rule 1 (Expiry Check):</strong> An expired batch can never be sold in the POS billing screen.</li>
+                            <li><strong>Rule 2 (Valid Stock Check):</strong> A sale is rejected if the requested quantity exceeds valid non-expired stock.</li>
+                            <li><strong>Rule 3 (FEFO Method):</strong> Stock is deducted from the batch with the earliest expiry date first.</li>
+                            <li><strong>Rule 4 (Role Access):</strong> Administrator manages users &amp; reports; Manager records purchases &amp; batches; Sales Staff handles customer billing.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div id="view-settings" class="content-view">
+                    <div class="panel-card">
+                        <h2>Shop &amp; Alert Configuration</h2>
+                        <form id="settingsForm" class="settings-grid mt-16">
+                            <div class="form-field">
+                                <label for="settingShopName">Shop Name</label>
+                                <input type="text" id="settingShopName" value="MediShop Pharmacy">
+                            </div>
+                            <div class="form-field">
+                                <label for="settingExpiryDays">Near-Expiry Warning (Days)</label>
+                                <input type="number" id="settingExpiryDays" min="7" max="180" value="30">
+                            </div>
+                            <div class="form-field">
+                                <label for="settingCurrency">Currency Symbol</label>
+                                <input type="text" id="settingCurrency" value="$">
+                            </div>
+                            <div class="form-field">
+                                <label for="settingLowStockThreshold">Minimum Low-Stock Threshold</label>
+                                <input type="number" id="settingLowStockThreshold" min="1" max="500" value="50">
+                            </div>
+                            <div class="form-actions-full">
+                                <button type="submit" class="btn-lime">Save Settings</button>
+                                <span id="settingsSavedMsg" class="saved-feedback" hidden>Settings saved.</span>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal-backdrop" id="addProductModal" hidden>
+        <div class="modal-card">
+            <div class="modal-head">
+                <h3>Add New Medicine &amp; Batch</h3>
+                <button type="button" class="modal-close" id="closeProductModal" aria-label="Close modal">&times;</button>
+            </div>
+            <form id="addProductForm">
+                <div class="form-field">
+                    <label for="newProdName">Medicine Name &amp; Strength</label>
+                    <input type="text" id="newProdName" placeholder="e.g. Azithromycin 500mg" required>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label for="newProdCategory">Category</label>
+                        <select id="newProdCategory">
+                            <option value="Antibiotics">Antibiotics</option>
+                            <option value="Pain Relievers">Pain Relievers</option>
+                            <option value="Vitamins & Supplements">Vitamins &amp; Supplements</option>
+                            <option value="Antiviral Drugs">Antiviral Drugs</option>
+                            <option value="Diabetes Care">Diabetes Care</option>
+                            <option value="Cardiovascular">Cardiovascular</option>
+                            <option value="Allergy Medication">Allergy Medication</option>
+                            <option value="Respiratory Medicines">Respiratory Medicines</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="newProdQty">Batch Quantity (Units)</label>
+                        <input type="number" id="newProdQty" min="0" value="100" required>
+                    </div>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label for="newProdPrice">Selling Price ($)</label>
+                        <input type="number" id="newProdPrice" step="0.01" min="0.10" value="4.50" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="newProdExpiry">Expiry Date (DD-MM-YYYY)</label>
+                        <input type="text" id="newProdExpiry" placeholder="15-08-2027" value="15-08-2027" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-outline" id="cancelProductModal">Cancel</button>
+                    <button type="submit" class="btn-lime">Save Medicine</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast-banner" id="toastBanner" hidden></div>
+
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
